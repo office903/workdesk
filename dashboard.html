@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WorkDesk — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0c10;
+      --surface: #111419;
+      --surface2: #161b24;
+      --border: #1e2330;
+      --accent: #f0a500;
+      --accent2: #e05c2a;
+      --text: #e8eaf0;
+      --muted: #6b7280;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+      --sidebar: 240px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+      transition: transform 0.3s;
+    }
+
+    .sidebar-brand {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-brand .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 16px rgba(240,165,0,0.25);
+    }
+
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .logo-text span { color: var(--accent); }
+
+    .user-chip {
+      margin-top: 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #000;
+      flex-shrink: 0;
+    }
+
+    .user-info .name { font-size: 13px; font-weight: 600; }
+    .user-info .role {
+      font-size: 11px; color: var(--accent);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    .nav {
+      flex: 1;
+      padding: 16px 12px;
+      overflow-y: auto;
+    }
+
+    .nav-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      padding: 0 8px;
+      margin-bottom: 8px;
+      margin-top: 16px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+      margin-bottom: 2px;
+    }
+
+    .nav-item:hover { color: var(--text); background: var(--surface2); }
+
+    .nav-item.active {
+      background: rgba(240,165,0,0.1);
+      border-color: rgba(240,165,0,0.2);
+      color: var(--accent);
+    }
+
+    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+
+    .nav-item .badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: #000;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 20px;
+    }
+
+    .sidebar-footer {
+      padding: 16px 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-logout {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover { color: var(--danger); border-color: var(--danger); }
+
+    /* ── MAIN ─────────────────────────────────────── */
+    .main {
+      margin-left: var(--sidebar);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .topbar-left h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .topbar-left p { font-size: 12px; color: var(--muted); }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sync-btn {
+      padding: 7px 16px;
+      background: rgba(240,165,0,0.1);
+      border: 1px solid rgba(240,165,0,0.25);
+      border-radius: 8px;
+      color: var(--accent);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .sync-btn:hover { background: rgba(240,165,0,0.2); }
+
+    .sync-btn.loading .sync-icon { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .page { padding: 28px; flex: 1; }
+
+    /* ── STATS ───────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+
+    .stat-card:hover { border-color: var(--accent); }
+
+    .stat-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat-card.total .stat-value { color: var(--text); }
+    .stat-card.pending .stat-value { color: var(--warning); }
+    .stat-card.done .stat-value { color: var(--success); }
+    .stat-card.inprog .stat-value { color: var(--info); }
+
+    /* ── SECTION HEADER ──────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .section-header h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .search-box {
+      padding: 8px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      outline: none;
+      width: 220px;
+      transition: border-color 0.2s;
+    }
+
+    .search-box:focus { border-color: var(--accent); }
+
+    /* ── TABS ─────────────────────────────────────── */
+    .tab-bar {
+      display: flex;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      width: fit-content;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      padding: 7px 16px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #000;
+      font-weight: 600;
+    }
+
+    /* ── TABLE ───────────────────────────────────── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead th {
+      padding: 13px 16px;
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(30,35,48,0.6);
+      transition: background 0.15s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface2); }
+
+    td {
+      padding: 13px 16px;
+      font-size: 14px;
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-status.pending  { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .badge-status.done     { background: rgba(34,197,94,0.15);  color: var(--success); }
+    .badge-status.progress { background: rgba(59,130,246,0.15); color: var(--info); }
+    .badge-status.cancelled{ background: rgba(239,68,68,0.15);  color: var(--danger); }
+
+    .btn-done {
+      padding: 6px 14px;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 7px;
+      color: var(--success);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-done:hover { background: rgba(34,197,94,0.2); }
+
+    .btn-done:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* ── EMPTY / LOADING ─────────────────────────── */
+    .loading-row td, .empty-row td {
+      text-align: center;
+      padding: 60px;
+      color: var(--muted);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+
+    /* ── TOAST ───────────────────────────────────── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      animation: toastIn 0.3s ease;
+      max-width: 320px;
+    }
+
+    .toast.success { background: #14532d; border: 1px solid var(--success); color: #bbf7d0; }
+    .toast.error   { background: #450a0a; border: 1px solid var(--danger);  color: #fecaca; }
+    .toast.info    { background: #1e3a5f; border: 1px solid var(--info);    color: #bfdbfe; }
+
+    @keyframes toastIn { from { opacity: 0; transform: translateY(16px); } }
+
+    /* ── ADMIN PANEL ─────────────────────────────── */
+    .users-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .user-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .user-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+
+    .user-card-avatar {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--info), #7c3aed);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; color: #fff;
+    }
+
+    .user-card-avatar.admin-av {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #000;
+    }
+
+    .user-card-name { font-weight: 600; font-size: 15px; }
+    .user-card-role { font-size: 12px; color: var(--muted); }
+
+    .user-cred {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .user-cred .key { color: var(--muted); }
+    .user-cred .val { font-family: monospace; color: var(--accent); }
+
+    /* ── SHEET CONFIG ────────────────────────────── */
+    .config-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 640px;
+      margin-bottom: 24px;
+    }
+
+    .config-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .config-field { margin-bottom: 14px; }
+
+    .config-field label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      margin-bottom: 7px;
+    }
+
+    .config-field input, .config-field select {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .config-field input:focus, .config-field select:focus { border-color: var(--accent); }
+    .config-field select option { background: var(--surface); }
+
+    .btn-save {
+      padding: 10px 22px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 8px;
+      color: #000;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-save:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* ── RESPONSIVE ──────────────────────────────── */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .topbar { padding: 0 16px; }
+      .page { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">Work<span>Desk</span></div>
+    </div>
+    <div class="user-chip">
+      <div class="user-avatar" id="sideUserAvatar">A</div>
+      <div class="user-info">
+        <div class="name" id="sideUserName">Loading...</div>
+        <div class="role" id="sideUserRole">—</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav" id="navMenu"></nav>
+
+  <div class="sidebar-footer">
+    <button class="btn-logout" onclick="logout()">⟵ Logout</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h2 id="pageTitle">Dashboard</h2>
+      <p id="pageSubtitle">Aapka overview</p>
+    </div>
+    <div class="topbar-right">
+      <button class="sync-btn" id="syncBtn" onclick="loadSheet()">
+        <span class="sync-icon">↻</span>
+        <span>Refresh</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Pages -->
+  <div class="page" id="pageDashboard">
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="section-header">
+      <h3>📋 Recent Entries</h3>
+      <input class="search-box" id="searchBox" placeholder="🔍 Search..." oninput="renderTable()"/>
+    </div>
+    <div class="tab-bar" id="tabBar"></div>
+    <div class="table-wrap">
+      <table>
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="page" id="pageUsers" style="display:none">
+    <div class="section-header"><h3>👥 User Management</h3></div>
+    <div class="users-grid" id="usersGrid"></div>
+  </div>
+
+  <div class="page" id="pageSettings" style="display:none">
+    <div class="section-header"><h3>⚙️ Settings</h3></div>
+
+    <div class="config-card">
+      <h3>🔗 Google Sheet Configuration</h3>
+      <div class="config-field">
+        <label>Apps Script Web App URL</label>
+        <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/YOUR_ID/exec"/>
+      </div>
+      <div class="config-field">
+        <label>Sheet Name (Tab)</label>
+        <input type="text" id="sheetName" placeholder="Sheet1"/>
+      </div>
+      <div class="config-field">
+        <label>Status Column Letter (e.g. E)</label>
+        <input type="text" id="statusCol" placeholder="E" maxlength="2"/>
+      </div>
+      <div class="config-field">
+        <label>Row ID Column Letter (e.g. A)</label>
+        <input type="text" id="idCol" placeholder="A" maxlength="2"/>
+      </div>
+      <button class="btn-save" onclick="saveConfig()">💾 Save & Connect</button>
+    </div>
+
+    <div class="config-card" id="adminUserConfig">
+      <h3>👤 Manage Credentials</h3>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:12px;">
+        Credentials change karne ke liye <code style="color:var(--accent)">index.html</code> me USERS object edit karein.
+        Baad me ek full user-management panel add karenge.
+      </p>
+      <div class="config-field">
+        <label>Platform Title</label>
+        <input type="text" id="platformTitle" placeholder="WorkDesk" oninput="updateTitle(this.value)"/>
+      </div>
+      <button class="btn-save" onclick="savePlatformSettings()">💾 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const DEFAULT_CONFIG = {
+  scriptUrl: '',
+  sheetName: 'Sheet1',
+  statusCol: 'E',
+  idCol: 'A',
+  title: 'WorkDesk'
+};
+
+let config  = JSON.parse(localStorage.getItem('wd_config') || 'null') || { ...DEFAULT_CONFIG };
+let user    = null;
+let allData = [];
+let headers = [];
+let activeTab = 'All';
+let currentPage = 'dashboard';
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+function init() {
+  const stored = sessionStorage.getItem('wd_user');
+  if (!stored) { window.location.href = 'index.html'; return; }
+  user = JSON.parse(stored);
+
+  // Update UI
+  document.getElementById('sideUserAvatar').textContent = user.name[0].toUpperCase();
+  document.getElementById('sideUserName').textContent   = user.name;
+  document.getElementById('sideUserRole').textContent   = user.role === 'admin' ? '👑 Admin' : '👤 Staff';
+  document.title = `${config.title || 'WorkDesk'} — Dashboard`;
+
+  buildNav();
+  loadConfig();
+
+  if (config.scriptUrl) {
+    loadSheet();
+  } else {
+    renderEmptySheet();
+    if (user.role === 'admin') {
+      showToast('⚙️ Pehle Settings me Google Sheet URL set karein.', 'info');
+    }
+  }
+}
+
+// ─── NAV ──────────────────────────────────────────────────────────────────────
+function buildNav() {
+  const isAdmin = user.role === 'admin';
+  const items = [
+    { icon: '📊', label: 'Dashboard',  key: 'dashboard', admin: false },
+    { icon: '👥', label: 'Users',      key: 'users',     admin: true  },
+    { icon: '⚙️', label: 'Settings',  key: 'settings',  admin: true  },
+  ];
+
+  let html = `<div class="nav-label">Menu</div>`;
+  items.forEach(item => {
+    if (item.admin && !isAdmin) return;
+    html += `
+      <div class="nav-item ${item.key === 'dashboard' ? 'active' : ''}"
+           onclick="goPage('${item.key}', this)">
+        <span class="icon">${item.icon}</span>
+        ${item.label}
+      </div>`;
+  });
+  document.getElementById('navMenu').innerHTML = html;
+}
+
+function goPage(key, el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+
+  document.getElementById('pageDashboard').style.display = key === 'dashboard' ? '' : 'none';
+  document.getElementById('pageUsers').style.display     = key === 'users'     ? '' : 'none';
+  document.getElementById('pageSettings').style.display  = key === 'settings'  ? '' : 'none';
+
+  currentPage = key;
+
+  const titles = {
+    dashboard: ['Dashboard', 'Aapka overview'],
+    users: ['User Management', 'Admin & Staff accounts'],
+    settings: ['Settings', 'Google Sheet aur platform config']
+  };
+  document.getElementById('pageTitle').textContent    = titles[key][0];
+  document.getElementById('pageSubtitle').textContent = titles[key][1];
+
+  if (key === 'users') renderUsers();
+}
+
+// ─── SHEET LOAD ───────────────────────────────────────────────────────────────
+async function loadSheet() {
+  if (!config.scriptUrl) {
+    renderEmptySheet();
+    return;
+  }
+
+  const btn = document.getElementById('syncBtn');
+  btn.classList.add('loading');
+
+  try {
+    const url = `${config.scriptUrl}?action=read&sheet=${encodeURIComponent(config.sheetName)}`;
+    const res  = await fetch(url);
+    const json = await res.json();
+
+    if (json.error) throw new Error(json.error);
+
+    // Assume first row = headers, rest = data
+    if (json.data && json.data.length > 0) {
+      headers = json.data[0];
+      allData = json.data.slice(1).map((row, i) => {
+        let obj = { _rowIndex: i + 2 }; // Google Sheet row (1-indexed + header)
+        headers.forEach((h, j) => { obj[h] = row[j] || ''; });
+        return obj;
+      });
+    } else {
+      headers = [];
+      allData = [];
+    }
+
+    renderStats();
+    renderTabs();
+    renderTable();
+    showToast(`✅ ${allData.length} records load ho gaye!`, 'success');
+
+  } catch (err) {
+    showToast('❌ Sheet load nahi hui: ' + err.message, 'error');
+    renderEmptySheet();
+  }
+
+  btn.classList.remove('loading');
+}
+
+// ─── DEMO DATA (jab sheet nahi connected) ────────────────────────────────────
+function renderEmptySheet() {
+  // Show demo data so UI looks good
+  headers  = ['ID', 'Customer Name', 'Item / Service', 'Date', 'Status', 'Assigned To', 'Amount'];
+  allData  = [
+    { _rowIndex:2, ID:'B001', 'Customer Name':'Rahul Sharma',   'Item / Service':'Suit Booking',  Date:'20-Apr-2026', Status:'Pending',     'Assigned To':'Raju',   Amount:'₹5000' },
+    { _rowIndex:3, ID:'B002', 'Customer Name':'Priya Verma',    'Item / Service':'Blazer Order',  Date:'21-Apr-2026', Status:'In Progress', 'Assigned To':'Priya',  Amount:'₹3200' },
+    { _rowIndex:4, ID:'B003', 'Customer Name':'Amit Kumar',     'Item / Service':'Shirt Design',  Date:'19-Apr-2026', Status:'Done',        'Assigned To':'Deepak', Amount:'₹1800' },
+    { _rowIndex:5, ID:'B004', 'Customer Name':'Neha Singh',     'Item / Service':'Kurta Set',     Date:'22-Apr-2026', Status:'Pending',     'Assigned To':'Raju',   Amount:'₹2600' },
+    { _rowIndex:6, ID:'T001', 'Customer Name':'—',              'Item / Service':'Delivery Check','Date':'22-Apr-2026', Status:'Pending',   'Assigned To':'Priya',  Amount:'—'     },
+  ];
+  renderStats();
+  renderTabs();
+  renderTable();
+}
+
+// ─── STATS ────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const counts = { total: allData.length, pending: 0, done: 0, progress: 0 };
+  allData.forEach(row => {
+    const s = (row['Status'] || row['status'] || '').toLowerCase();
+    if (s.includes('pending'))  counts.pending++;
+    else if (s.includes('done') || s.includes('complete')) counts.done++;
+    else if (s.includes('progress') || s.includes('progress')) counts.progress++;
+  });
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card total">
+      <div class="stat-label">Total Records</div>
+      <div class="stat-value">${counts.total}</div>
+    </div>
+    <div class="stat-card pending">
+      <div class="stat-label">⏳ Pending</div>
+      <div class="stat-value">${counts.pending}</div>
+    </div>
+    <div class="stat-card inprog">
+      <div class="stat-label">🔄 In Progress</div>
+      <div class="stat-value">${counts.progress}</div>
+    </div>
+    <div class="stat-card done">
+      <div class="stat-label">✅ Done</div>
+      <div class="stat-value">${counts.done}</div>
+    </div>
+  `;
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function renderTabs() {
+  const statuses = ['All', ...new Set(allData.map(r => r['Status'] || r['status'] || 'Unknown').filter(Boolean))];
+  document.getElementById('tabBar').innerHTML = statuses.map(s =>
+    `<button class="tab-btn ${s === activeTab ? 'active' : ''}" onclick="setTab('${s}')">${s}</button>`
+  ).join('');
+}
+
+function setTab(tab) {
+  activeTab = tab;
+  renderTabs();
+  renderTable();
+}
+
+// ─── TABLE ────────────────────────────────────────────────────────────────────
+function renderTable() {
+  const query = (document.getElementById('searchBox')?.value || '').toLowerCase();
+
+  let rows = allData.filter(row => {
+    const matchTab   = activeTab === 'All' || (row['Status'] || row['status'] || '') === activeTab;
+    const matchSearch = !query || Object.values(row).some(v => String(v).toLowerCase().includes(query));
+    // Staff sees only their rows
+    const matchStaff = user.role === 'admin' || String(row['Assigned To'] || row['assigned to'] || '').toLowerCase().includes(user.name.toLowerCase());
+    return matchTab && matchSearch && matchStaff;
+  });
+
+  // Table head
+  const visibleHeaders = headers.filter(h => h);
+  document.getElementById('tableHead').innerHTML =
+    `<tr>${visibleHeaders.map(h => `<th>${h}</th>`).join('')}<th>Action</th></tr>`;
+
+  // Table body
+  if (rows.length === 0) {
+    document.getElementById('tableBody').innerHTML =
+      `<tr class="empty-row"><td colspan="${visibleHeaders.length + 1}"><div>😕</div>Koi record nahi mila.</td></tr>`;
+    return;
+  }
+
+  document.getElementById('tableBody').innerHTML = rows.map(row => {
+    const status = row['Status'] || row['status'] || '';
+    const isDone = status.toLowerCase().includes('done') || status.toLowerCase().includes('complete');
+    const statusClass = isDone ? 'done'
+      : status.toLowerCase().includes('progress') ? 'progress'
+      : status.toLowerCase().includes('cancel') ? 'cancelled'
+      : 'pending';
+
+    const cells = visibleHeaders.map(h => {
+      if (h === 'Status' || h === 'status') {
+        return `<td><span class="badge-status ${statusClass}">${status || '—'}</span></td>`;
+      }
+      return `<td>${row[h] || '—'}</td>`;
+    }).join('');
+
+    const rowId = row['_rowIndex'];
+    const actionBtn = isDone
+      ? `<td><span class="badge-status done">✓ Done</span></td>`
+      : `<td><button class="btn-done" onclick="markDone(${rowId}, this)">✓ Mark Done</button></td>`;
+
+    return `<tr>${cells}${actionBtn}</tr>`;
+  }).join('');
+}
+
+// ─── MARK DONE ────────────────────────────────────────────────────────────────
+async function markDone(rowIndex, btn) {
+  btn.disabled = true;
+  btn.textContent = '⏳ Updating...';
+
+  if (!config.scriptUrl) {
+    // Demo mode — just update local data
+    const row = allData.find(r => r._rowIndex === rowIndex);
+    if (row) {
+      row['Status'] = 'Done';
+      row['status'] = 'Done';
+    }
+    renderStats(); renderTabs(); renderTable();
+    showToast('✅ Demo mode: Status Done mark hua! (Sheet connected nahi hai)', 'info');
+    return;
+  }
+
+  try {
+    const url = `${config.scriptUrl}?action=updateStatus&sheet=${encodeURIComponent(config.sheetName)}&row=${rowIndex}&col=${config.statusCol}&value=Done`;
+    const res  = await fetch(url);
+    const json = await res.json();
+
+    if (json.success) {
+      // Update local data
+      const row = allData.find(r => r._rowIndex === rowIndex);
+      if (row) { row['Status'] = 'Done'; row['status'] = 'Done'; }
+      renderStats(); renderTabs(); renderTable();
+      showToast('✅ Google Sheet me Done update ho gaya!', 'success');
+    } else {
+      throw new Error(json.error || 'Update failed');
+    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = '✓ Mark Done';
+    showToast('❌ Update nahi hua: ' + err.message, 'error');
+  }
+}
+
+// ─── USERS PAGE ───────────────────────────────────────────────────────────────
+function renderUsers() {
+  // Read from USERS defined in index.html — but here we show static list
+  // (In production, share via localStorage or API)
+  const knownUsers = [
+    { id:'admin',  name:'Admin',  role:'admin', password:'admin123'  },
+    { id:'owner',  name:'Owner',  role:'admin', password:'owner@123' },
+    { id:'staff1', name:'Raju',   role:'staff', password:'staff123'  },
+    { id:'staff2', name:'Priya',  role:'staff', password:'staff456'  },
+    { id:'staff3', name:'Deepak', role:'staff', password:'staff789'  },
+  ];
+
+  document.getElementById('usersGrid').innerHTML = knownUsers.map(u => `
+    <div class="user-card">
+      <div class="user-card-header">
+        <div class="user-card-avatar ${u.role === 'admin' ? 'admin-av' : ''}">${u.name[0]}</div>
+        <div>
+          <div class="user-card-name">${u.name}</div>
+          <div class="user-card-role">${u.role === 'admin' ? '👑 Admin' : '👤 Staff'}</div>
+        </div>
+      </div>
+      <div class="user-cred"><span class="key">User ID</span><span class="val">${u.id}</span></div>
+      <div class="user-cred"><span class="key">Password</span><span class="val">${u.password}</span></div>
+    </div>
+  `).join('');
+}
+
+// ─── SETTINGS ─────────────────────────────────────────────────────────────────
+function loadConfig() {
+  document.getElementById('scriptUrl').value    = config.scriptUrl    || '';
+  document.getElementById('sheetName').value    = config.sheetName    || 'Sheet1';
+  document.getElementById('statusCol').value    = config.statusCol    || 'E';
+  document.getElementById('idCol').value        = config.idCol        || 'A';
+  document.getElementById('platformTitle').value= config.title        || 'WorkDesk';
+}
+
+function saveConfig() {
+  config.scriptUrl = document.getElementById('scriptUrl').value.trim();
+  config.sheetName = document.getElementById('sheetName').value.trim() || 'Sheet1';
+  config.statusCol = document.getElementById('statusCol').value.trim().toUpperCase() || 'E';
+  config.idCol     = document.getElementById('idCol').value.trim().toUpperCase() || 'A';
+  localStorage.setItem('wd_config', JSON.stringify(config));
+  showToast('✅ Config save ho gaya! Ab sheet load ho rahi hai...', 'success');
+  setTimeout(loadSheet, 800);
+}
+
+function savePlatformSettings() {
+  config.title = document.getElementById('platformTitle').value.trim() || 'WorkDesk';
+  localStorage.setItem('wd_config', JSON.stringify(config));
+  updateTitle(config.title);
+  showToast('✅ Settings saved!', 'success');
+}
+
+function updateTitle(val) {
+  document.title = `${val || 'WorkDesk'} — Dashboard`;
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg, type = 'info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// ─── LOGOUT ──────────────────────────────────────────────────────────────────
+function logout() {
+  sessionStorage.removeItem('wd_user');
+  window.location.href = 'index.html';
+}
+
+// ─── START ────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
